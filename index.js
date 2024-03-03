@@ -37,6 +37,8 @@
 
 // server.js
 
+// building  image for the node js application
+
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
