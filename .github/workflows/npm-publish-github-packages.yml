@@ -1,0 +1,24 @@
+# This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
+# For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
+          name: Wellness-Backend
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build_and_publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: npm install
+        run: npm ci
+      - name: run the unit tests
+        run: npm test
+      - name: Build and push the image              
+        run: |
+          docker login --username blackhat955 --password ${{secrets.ACCESS_TOKEN}} ghcr.io
+          docker build -t ghcr.io/blackhat955/arithmetic-service:latest --file Dockerfile .
+          docker push ghcr.io/blackhat955/arithmetic-service:latest
+
