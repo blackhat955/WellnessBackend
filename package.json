@@ -1,22 +1,30 @@
 {
-  "name": "backend",
+  "name": "wellness_management_system",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon index.js"
+    "start": "nodemon run server"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "axios": "^1.6.7",
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
+    "connect-mongo": "^5.0.0",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.4",
     "express": "^4.18.2",
-    "mongodb": "^6.3.0",
-    "mongoose": "^8.1.3",
-    "nodemon": "^3.0.3"
-  },
-  "description": ""
+    "express-session": "^1.17.3",
+    "http": "^0.0.1-security",
+    "mongoose": "^7.5.3",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.5",
+    "nodemon": "^3.0.1",
+    "passport": "^0.6.0",
+    "passport-google-oauth20": "^2.0.0",
+    "passport-local": "^1.0.0",
+    "passport-local-mongoose": "^8.0.0",
+    "passport-oauth2-client-password": "^0.1.2",
+    "path": "^0.12.7",
+    "qrcode": "^1.5.3",
+    "socket.io": "^4.7.2",
+    "speakeasy": "^2.0.0"
+  }
 }
