@@ -8,7 +8,10 @@ const userSchema = new mongoose.Schema({
   code: String,
   resetToken: String,
   tokenExpiry: Date,
-  type:String
+  userType: {
+    type: String,
+    enum: ['professional', 'customer'], // Only allows 'professional' or 'customer
+  },
 });
 
 module.exports = mongoose.model('User', userSchema);
