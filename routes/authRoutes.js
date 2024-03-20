@@ -17,7 +17,7 @@ const router = express.Router();
 
 
 router.post('/register', async (req, res) => {
-    const { email, password, firstname, lastname, type } = req.body;
+    const { email, password, firstname, lastname, userType } = req.body;
     console.log(req.body)
     const hashedPassword = await bcrypt.hash(password, 10);
     const userData =  await User.findOne({email});
@@ -25,15 +25,19 @@ router.post('/register', async (req, res) => {
     if(userData) {
       res.status(409).send({ message: 'User already Exists', userData });
     } else {
-      const user = new User({ email, password: hashedPassword, firstname, lastname });
+      const user = new User({ email, password: hashedPassword, firstname, userType, lastname });
       const data = await user.save();
       res.status(200).send({ message: 'Registered successfully', data  });
     }
 });
 
 router.post('/login', async (req, res) => {
+
+
+console.log("login route hit.......")
+
   try {
-    const { email, password } = req.body;
+    const { email, password} = req.body;
     const user = await User.findOne({ email });
     console.log('this is user email id', user)
     if (user && await bcrypt.compare(password, user.password)) {
@@ -68,7 +72,7 @@ router.post('/login', async (req, res) => {
         firstname : user.firstname,
         lastname  : user.lastname,
         email : user.email,
-        type : user.type ? user.type : " "
+        userType : user.userType ? user.userType : " "
       }
       res.status(200).send({ message: 'Code sent to email',userDetails:userdeets});
     } else {
@@ -119,7 +123,7 @@ router.post('/forget-password', async (req, res) => {
     to: email, 
     subject: 'Reset Password', 
     text: 'Reset Password', 
-    html: `<b>Click this link to reset your password: http://localhost:5173/reset-password/${token}</b>` 
+    html: `<b>Click this link to reset your password: http://localhost:3000/reset-password/${token}</b>` 
   };
 
   
