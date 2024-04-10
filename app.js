@@ -4,11 +4,15 @@ const socketIo = require('socket.io');
 
 
 const authRoutes = require('./routes/authRoutes');
+const content = require('./routes/videocontent');
 const Message = require('./models/messageSchema');
 const User = require('./models/User');
 
+
 const app = express();
 
+app.use(express.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
+app.use(express.json()); // For parsing application/json
 
 // MongoDB setup
 mongoose.connect('mongodb+srv://earthh17:zS4njrU9MrKNNpVN@cluster0.wp530qf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', { useNewUrlParser: true, useUnifiedTopology: true })
@@ -81,6 +85,8 @@ io.on('connection', (socket) => {
     app.use(require('cors')());
 
     app.use('/auth', authRoutes); // Mount the auth routes
+    app.use('/video', content);
+  
 
     app.use('/uploads', express.static('uploads'));
 

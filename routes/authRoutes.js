@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const path = require('path');
 const multer = require('multer');
+const fs = require('fs');
 const User = require('../models/User'); // Assume you have a userModel.js for Mongoose model
 const crypto = require('crypto');
 const FitnessProfessional = require('../models/FitnessProfessional'); // Assuming the file name is FitnessProfessional.js
@@ -294,6 +295,8 @@ const upload = multer({ storage: storage });
 router.post('/content', upload.single('file'), async (req, res) => {
   try {
       const { title, description, type, instructor, mode } = req.body;
+      console.log(req.body)
+      console.log(req.file)
       const originalFileName = req.file.filename;
       const fileExtension = path.extname(originalFileName);
       const videoId = originalFileName.replace(fileExtension, '');
@@ -323,5 +326,42 @@ router.post('/content', upload.single('file'), async (req, res) => {
       res.status(500).json({ message: error.message });
   }
 })
+
+
+// router.get('/videos', (req, res) => {
+//   const videosDir = path.join(__dirname, '../uploads/Videos');
+
+//   // Read the files in the 'upload/videos' directory
+//   fs.readdir(videosDir, (err, files) => {
+//       if (err) {
+//           console.error('Error reading videos directory:', err);
+//           return res.status(500).json({ error: 'Internal Server Error' });
+//       }
+
+//       // Send the list of video file names as the response
+//       res.json({ videos: files });
+//   });
+// });
+
+
+
+router.get('/videos', (req, res) => {
+  const baseUrl = req.protocol + '://' + req.get('host'); // Get the base URL of the server
+  const videosDir = path.join(__dirname, '../uploads/Videos');
+
+  // Read the files in the 'upload/videos' directory
+  fs.readdir(videosDir, (err, files) => {
+      if (err) {
+          console.error('Error reading videos directory:', err);
+          return res.status(500).json({ error: 'Internal Server Error' });
+      }
+
+      // Construct the full URLs of the videos
+      const videoURLs = files.map(filename => baseUrl + '/auth/videos/' + filename);
+
+      // Send the list of video file names and URLs as the response
+      res.json({ videos: file ,videoURLs: videoURLs });
+  });
+});
 
 module.exports = router;
