@@ -3,19 +3,19 @@ const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const path = require('path');
 const multer = require('multer');
-const User = require('../models/User'); // Assume you have a userModel.js for Mongoose model
+const User = require('../models/User'); // User model
 const crypto = require('crypto');
-const FitnessProfessional = require('../models/FitnessProfessional'); // Assuming the file name is FitnessProfessional.js
+const FitnessProfessional = require('../models/FitnessProfessional'); 
 const WorkoutPlan = require('../models/WorkoutPlan');
 const WorkoutPlanTable = require('../models/WorkPlansTable');
 // const Message = require('./models/messageSchema');
 const contentSchema = require('../models/content');
 
 
-
+// Initialize Express router
 const router = express.Router();
 
-
+// Route to handle user registration
 router.post('/register', async (req, res) => {
     const { email, password, firstname, lastname, userType } = req.body;
     console.log(req.body)
@@ -30,7 +30,7 @@ router.post('/register', async (req, res) => {
       res.status(200).send({ message: 'Registered successfully', data  });
     }
 });
-
+// Route to handle user login
 router.post('/login', async (req, res) => {
 
 
@@ -67,7 +67,7 @@ console.log("login route hit.......")
       } catch(err){
         console.log(err)
       }
-      // send user type also
+      
       const userdeets = {
         firstname : user.firstname,
         lastname  : user.lastname,
@@ -83,6 +83,7 @@ console.log("login route hit.......")
   }
 });
 
+// Route to verify OTP sent to user
 router.post('/verify-code', async (req, res) => {
     const { email, type ,code } = req.body;
     const user = await User.findOne({ email});
@@ -92,7 +93,7 @@ router.post('/verify-code', async (req, res) => {
         res.status(401).send({ message: 'Invalid code' });
     }
 });
-
+// Route to handle password reset request
 router.post('/forget-password', async (req, res) => {
   const { email  } = req.body;
 
@@ -110,7 +111,7 @@ router.post('/forget-password', async (req, res) => {
 
   await user.save();
 
-  // Send email with the reset link
+  // Email setup for sending password reset link
   let transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -131,7 +132,7 @@ router.post('/forget-password', async (req, res) => {
   res.send({ message: 'Reset link sent to email.' });
 });
 
-
+// Route to reset password after verification
 router.post('/reset-password', async (req, res) => {
   const { token, password } = req.body;
 
@@ -150,13 +151,13 @@ router.post('/reset-password', async (req, res) => {
   user.password = hashedPassword;
   user.save()
 
-  // Invalidate the reset token
-  user.resetToken = null;
-  user.tokenExpiry = null;
+  user.resetToken = null; // Clear the reset token
+  user.tokenExpiry = null; // Clear the token expiry
 
   res.send({ message: 'Password reset successfully.' });
 })
 
+// Route to search fitness professionals
 router.get('/search-fitness-professional', async (req, res) => {
   try {
       const searchParams = req.query;
