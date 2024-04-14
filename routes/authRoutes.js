@@ -88,7 +88,7 @@ router.post('/verify-code', async (req, res) => {
     const { email, type ,code } = req.body;
     const user = await User.findOne({ email});
     if (user && code === user.code) {
-        res.status(200).send({ message: 'Authenticated successfully' });
+        res.status(200).send({ message: 'Authenticated successfully', user: user });
     } else {
         res.status(401).send({ message: 'Invalid code' });
     }
@@ -282,51 +282,6 @@ router.get('/contents', async (req, res) => {
   }
 });
 
-const storage = multer.diskStorage({
-  destination: function(req, file, cb) {
-      cb(null, 'uploads/Videos');
-  },
-  filename: function(req, file, cb) {
-      cb(null, file.originalname);
-  }
-});
-const upload = multer({ storage: storage });
-
-router.post('/content', upload.single('file'), async (req, res) => {
-  try {
-      const { title, description, type, instructor, mode } = req.body;
-      console.log(req.body)
-      console.log(req.file)
-      const originalFileName = req.file.filename;
-      const fileExtension = path.extname(originalFileName);
-      const videoId = originalFileName.replace(fileExtension, '');
-      const existingContent = await contentSchema.findOne({ videoId, instructor });
-
-      if (existingContent) {
-        return res.status(400).json({ message: "A content with this videoId already exists." });
-      }
-
-      // Create a new content item with today's date
-      const newContent = new contentSchema({
-          title,
-          description,
-          type,
-          instructor,
-          date: new Date(), 
-          videoId,
-          mode
-      });
-
-
-      // Save the new content item to the database
-      await newContent.save();
-
-      res.status(201).json(newContent);
-  } catch (error) {
-      res.status(500).json({ message: error.message });
-  }
-})
-
 
 // router.get('/videos', (req, res) => {
 //   const videosDir = path.join(__dirname, '../uploads/Videos');
@@ -344,24 +299,5 @@ router.post('/content', upload.single('file'), async (req, res) => {
 // });
 
 
-
-router.get('/videos', (req, res) => {
-  const baseUrl = req.protocol + '://' + req.get('host'); // Get the base URL of the server
-  const videosDir = path.join(__dirname, '../uploads/Videos');
-
-  // Read the files in the 'upload/videos' directory
-  fs.readdir(videosDir, (err, files) => {
-      if (err) {
-          console.error('Error reading videos directory:', err);
-          return res.status(500).json({ error: 'Internal Server Error' });
-      }
-
-      // Construct the full URLs of the videos
-      const videoURLs = files.map(filename => baseUrl + '/auth/videos/' + filename);
-
-      // Send the list of video file names and URLs as the response
-      res.json({ videos: file ,videoURLs: videoURLs });
-  });
-});
 
 module.exports = router;
