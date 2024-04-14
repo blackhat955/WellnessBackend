@@ -1,55 +1,4 @@
-// const AWS = require("aws-sdk");
-// const fs = require("fs");
-// const multer = require("multer");
-// const zlib = require("zlib");
-// const express = require("express");
-// const content = express();
-
-// AWS.config.update({
-//     accessKeyId: "AKIA6ODU2IM6WL6FRDFM",
-//     secretAccessKey: "5QLmWjTIJIxPmoXmmhLVjb762NgvNI0SlApERHMg",
-//     region: "us-east-1",
-// });
-// const s3 = new AWS.S3();
-// const bucketName = "wellnesshealth"; // Replace with your S3 bucket name
-// // Path to the video file you want to upload
-
-// const params = {
-//     Bucket: "wellnesshealth",
-// };
-
-// content.get("/videos", (req, res) => {
-//     s3.listObjectsV2(params, (err, data) => {
-//         if (err) {
-//             console.log(err);
-//             res.status(500).send("Internal Server Error");
-//         } else {
-//             const videoData = data.Contents.map((obj) => {
-//                 const videoDetails = {
-//                     url: `https://dd12fyimlw2sl.cloudfront.net/${encodeURIComponent(
-//                         obj.Key
-//                     )}`,
-//                     title: "Introduction to React",
-//                     instructor: "John Doe",
-//                     mode: "Online",
-//                     type: "Tutorial",
-//                     date: "2024-04-10",
-//                 };
-                
-//                 return videoDetails;
-//             });
-
-//             res.send(videoData);
-//         }
-//     });
-// });
-
-
-
-
-// module.exports = content;
-
-
+// Description: This file contains the routes for video content. It allows users to upload videos to AWS S3 and fetch videos from MongoDB.
 
 const express = require('express');
 const router = express.Router();
@@ -61,12 +10,12 @@ const fs = require('fs');
 
 // Configure AWS S3 and CloudFront
 const s3 = new AWS.S3({
-  accessKeyId: "AKIA6ODU2IM6WL6FRDFM",
-  secretAccessKey: "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",
-  region: "us-east-1",
+//   accessKeyId: "AKIA6ODU2IM6WL6FRDFM",
+//   secretAccessKey: "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",
+//   region: "us-east-1",
 });
 
-const urlfix = "dd12fyimlw2sl.cloudfront.net"; 
+// const urlfix = "dd12fyimlw2sl.cloudfront.net"; 
 
 // Upload file to S3
 function uploadToS3(file) {
