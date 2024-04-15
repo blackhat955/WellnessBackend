@@ -1,6 +1,7 @@
 // Description: This file contains the routes for video content. It allows users to upload videos to AWS S3 and fetch videos from MongoDB.
 
 const express = require('express');
+require('dotenv').config();
 const router = express.Router();
 const multer = require('multer');
 const AWS = require('aws-sdk');
@@ -10,7 +11,9 @@ const fs = require('fs');
 
 // Configure AWS S3 and CloudFront
 const s3 = new AWS.S3({
-
+  accessKeyId:process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey:process.env.AWS_SECRET_ACCESS_KEY ,
+  region: "us-east-1",
 });
 
 const urlfix = "dd12fyimlw2sl.cloudfront.net"; 
