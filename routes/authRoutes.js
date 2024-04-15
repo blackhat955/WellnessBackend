@@ -3,19 +3,20 @@ const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const path = require('path');
 const multer = require('multer');
-const User = require('../models/User'); // User model
+const fs = require('fs');
+const User = require('../models/User'); // Assume you have a userModel.js for Mongoose model
 const crypto = require('crypto');
-const FitnessProfessional = require('../models/FitnessProfessional'); 
+const FitnessProfessional = require('../models/FitnessProfessional'); // Assuming the file name is FitnessProfessional.js
 const WorkoutPlan = require('../models/WorkoutPlan');
 const WorkoutPlanTable = require('../models/WorkPlansTable');
 // const Message = require('./models/messageSchema');
 const contentSchema = require('../models/content');
 
 
-// Initialize Express router
+
 const router = express.Router();
 
-// Route to handle user registration
+
 router.post('/register', async (req, res) => {
     const { email, password, firstname, lastname, userType } = req.body;
     console.log(req.body)
@@ -30,7 +31,7 @@ router.post('/register', async (req, res) => {
       res.status(200).send({ message: 'Registered successfully', data  });
     }
 });
-// Route to handle user login
+
 router.post('/login', async (req, res) => {
 
 
@@ -67,7 +68,7 @@ console.log("login route hit.......")
       } catch(err){
         console.log(err)
       }
-      
+      // send user type also
       const userdeets = {
         firstname : user.firstname,
         lastname  : user.lastname,
@@ -83,17 +84,16 @@ console.log("login route hit.......")
   }
 });
 
-// Route to verify OTP sent to user
 router.post('/verify-code', async (req, res) => {
     const { email, type ,code } = req.body;
     const user = await User.findOne({ email});
     if (user && code === user.code) {
-        res.status(200).send({ message: 'Authenticated successfully' });
+        res.status(200).send({ message: 'Authenticated successfully', user: user });
     } else {
         res.status(401).send({ message: 'Invalid code' });
     }
 });
-// Route to handle password reset request
+
 router.post('/forget-password', async (req, res) => {
   const { email  } = req.body;
 
@@ -111,7 +111,7 @@ router.post('/forget-password', async (req, res) => {
 
   await user.save();
 
-  // Email setup for sending password reset link
+  // Send email with the reset link
   let transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -132,7 +132,7 @@ router.post('/forget-password', async (req, res) => {
   res.send({ message: 'Reset link sent to email.' });
 });
 
-// Route to reset password after verification
+
 router.post('/reset-password', async (req, res) => {
   const { token, password } = req.body;
 
@@ -151,13 +151,13 @@ router.post('/reset-password', async (req, res) => {
   user.password = hashedPassword;
   user.save()
 
-  user.resetToken = null; // Clear the reset token
-  user.tokenExpiry = null; // Clear the token expiry
+  // Invalidate the reset token
+  user.resetToken = null;
+  user.tokenExpiry = null;
 
   res.send({ message: 'Password reset successfully.' });
 })
 
-// Route to search fitness professionals
 router.get('/search-fitness-professional', async (req, res) => {
   try {
       const searchParams = req.query;
@@ -282,47 +282,59 @@ router.get('/contents', async (req, res) => {
   }
 });
 
-const storage = multer.diskStorage({
-  destination: function(req, file, cb) {
-      cb(null, 'uploads/Videos');
+
+// router.get('/videos', (req, res) => {
+//   const videosDir = path.join(__dirname, '../uploads/Videos');
+
+//   // Read the files in the 'upload/videos' directory
+//   fs.readdir(videosDir, (err, files) => {
+//       if (err) {
+//           console.error('Error reading videos directory:', err);
+//           return res.status(500).json({ error: 'Internal Server Error' });
+//       }
+
+//       // Send the list of video file names as the response
+//       res.json({ videos: files });
+//   });
+// });
+
+
+
+router.post('/subscribe', async (req, res) => {
+const { email  } = req.body;
+
+
+const user = await User.findOne({ email });
+// Verify if email exists in your database (pseudo code)
+if (!user) {
+  return res.status(400).send({ message: 'Email not registered.' });
+}
+// Send email with the reset link
+let transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+      user: 'knowdurgesh98@gmail.com',
+      pass: 'eggr koox azdd bvtc'
   },
-  filename: function(req, file, cb) {
-      cb(null, file.originalname);
-  }
 });
-const upload = multer({ storage: storage });
-
-router.post('/content', upload.single('file'), async (req, res) => {
-  try {
-      const { title, description, type, instructor, mode } = req.body;
-      const originalFileName = req.file.filename;
-      const fileExtension = path.extname(originalFileName);
-      const videoId = originalFileName.replace(fileExtension, '');
-      const existingContent = await contentSchema.findOne({ videoId, instructor });
-
-      if (existingContent) {
-        return res.status(400).json({ message: "A content with this videoId already exists." });
-      }
-
-      // Create a new content item with today's date
-      const newContent = new contentSchema({
-          title,
-          description,
-          type,
-          instructor,
-          date: new Date(), 
-          videoId,
-          mode
-      });
+let mailOptions = {
+  from: 'knowdurgesh98@gmail.com', 
+  to: email, 
+  subject: 'Subscribe to our service', 
+  text: 'We are very happy to have you!', 
+  html: `
+  <p>Thanks for subscribing to our service. We are very happy to have you!</p>
+  <p>This is a wellness tracking platform where you can find information about gym and outdoor workouts, hire tutors or mentors, and access video content to learn new things.</p>
+  <p>We will send you promotional emails from time to time.</p>
+  <p><a href="YOUR_UNSUBSCRIBE_LINK_HERE">Click here to unsubscribe</a></p>
+  <b>Thanks and regards</b>
+  <p>Wellness Tracking Team</p>
+`
+};
+await transporter.sendMail(mailOptions);
+res.send({ message: 'Email is got subscribed' });
+});
 
 
-      // Save the new content item to the database
-      await newContent.save();
-
-      res.status(201).json(newContent);
-  } catch (error) {
-      res.status(500).json({ message: error.message });
-  }
-})
 
 module.exports = router;
