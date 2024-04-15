@@ -10,9 +10,7 @@ const fs = require('fs');
 
 // Configure AWS S3 and CloudFront
 const s3 = new AWS.S3({
-  accessKeyId: "AKIA6ODU2IM6WL6FRDFM",
-  secretAccessKey: "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",
-  region: "us-east-1",
+
 });
 
 const urlfix = "dd12fyimlw2sl.cloudfront.net"; 
