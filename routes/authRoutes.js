@@ -283,20 +283,20 @@ router.get('/contents', async (req, res) => {
 });
 
 
-// router.get('/videos', (req, res) => {
-//   const videosDir = path.join(__dirname, '../uploads/Videos');
+router.get('/videos', (req, res) => {
+  const videosDir = path.join(__dirname, '../uploads/Videos');
 
-//   // Read the files in the 'upload/videos' directory
-//   fs.readdir(videosDir, (err, files) => {
-//       if (err) {
-//           console.error('Error reading videos directory:', err);
-//           return res.status(500).json({ error: 'Internal Server Error' });
-//       }
+  // Read the files in the 'upload/videos' directory
+  fs.readdir(videosDir, (err, files) => {
+      if (err) {
+          console.error('Error reading videos directory:', err);
+          return res.status(500).json({ error: 'Internal Server Error' });
+      }
 
-//       // Send the list of video file names as the response
-//       res.json({ videos: files });
-//   });
-// });
+      // Send the list of video file names as the response
+      res.json({ videos: files });
+  });
+});
 
 
 
