@@ -158,6 +158,30 @@ router.post('/reset-password', async (req, res) => {
   res.send({ message: 'Password reset successfully.' });
 })
 
+// Additional test-case endpoint
+
+// Add this endpoint to authRoutes.js to handle test user deletions
+router.delete('/deleteUserForTest', async (req, res) => {
+  const { email } = req.body;
+  const result = await User.deleteOne({ email });
+  if (result.deletedCount === 0) {
+    return res.status(404).send({ message: 'User not found.' });
+  }
+  res.status(200).send({ message: 'Deleted Testing User successfully' });
+});
+
+
+router.post('/verify-code', async (req, res) => {
+  const { email, code } = req.body;
+  const user = await User.findOne({ email });
+  if (user && user.code === code) {
+      res.status(200).send({ message: 'Authenticated successfully', user: user });
+  } else {
+      res.status(401).send({ message: 'Invalid code' });
+  }
+});
+
+
 router.get('/search-fitness-professional', async (req, res) => {
   try {
       const searchParams = req.query;
