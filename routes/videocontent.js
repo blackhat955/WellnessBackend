@@ -11,6 +11,9 @@ const fs = require('fs');
 
 // Configure AWS S3 and CloudFront
 const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION,
 });
 
 const urlfix = "dd12fyimlw2sl.cloudfront.net"; 
@@ -94,6 +97,8 @@ router.get("/getVideos", async (req, res) => {
   try {
     // Fetch all videos from MongoDB
     const videos = await Video.find();
+
+    console.log("videos is working", videos);
 
     res.status(200).json({ success: true, videos });
   } catch (err) {

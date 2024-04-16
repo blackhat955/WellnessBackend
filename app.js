@@ -1,41 +1,43 @@
-// Load required modules
 const express = require('express');
 const mongoose = require('mongoose');
 const socketIo = require('socket.io');
 
 
-const authRoutes = require('./routes/authRoutes'); // Authentication routes
-const Message = require('./models/messageSchema'); // Schema for message data
-const User = require('./models/User');             // Schema for user data
+const authRoutes = require('./routes/authRoutes');
+const content = require('./routes/videocontent');
+const Message = require('./models/messageSchema');
+const User = require('./models/User');
 
-// Initialize Express application
+
 const app = express();
 
+app.use(express.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
+app.use(express.json()); // For parsing application/json
 
-// Connect to MongoDB using a connection string
+// MongoDB setup
 mongoose.connect('mongodb+srv://earthh17:zS4njrU9MrKNNpVN@cluster0.wp530qf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {
-        console.log('Connected to MongoDB');  // Log success message on successful connection
+        console.log('Connected to MongoDB');
     })
 
-// Setup HTTP server and integrate Socket.IO
+// Create a server from the Express app
 const server = require('http').Server(app);
-const io = socketIo(server); // Initialize Socket.IO with the server
+const io = socketIo(server);
 
 
-// Define the behavior for client connections using Socket.IO
+// Socket.IO Logic
 io.on('connection', (socket) => {
-    console.log('New client connected:', socket.id); // Log new connection with socket ID
+    console.log('New client connected:', socket.id);
 
-    // Register user's email and associate it with a socket ID
+    // Register user's email and associate with socket ID
     socket.on('register', async ({ email }) => {
         await User.findOneAndUpdate(
             { email },
             { socketId: socket.id },
-            { upsert: true, new: true }  // Upsert ensures creation if it doesn't exist
+            { upsert: true, new: true }
         );
 
-        // Retrieve and send chat history to the client
+        // Retrieve and send chat history related to the user's email
         Message.find({ $or: [{ senderEmail: email }, { receiverEmail: email }] })
             .sort('timestamp')
             .exec((err, messages) => {
@@ -47,7 +49,6 @@ io.on('connection', (socket) => {
             });
     });
 
-    // Handle sending of private messages
     socket.on('private_message', async ({ senderEmail, receiverEmail, message }) => {
         const newMessage = new Message({
             senderEmail,
@@ -56,18 +57,17 @@ io.on('connection', (socket) => {
         });
         await newMessage.save();
 
-        // Retrieve the receiver's socket ID and forward the message
+        // Retrieve the receiver's socket ID by their email
         const receiver = await User.findOne({ email: receiverEmail });
         if (receiver && receiver.socketId) {
             io.to(receiver.socketId).emit('receive_message', newMessage);
         }
     });
 
-    // Clean up when a client disconnects
     socket.on('disconnect', async () => {
         console.log('Client disconnected:', socket.id);
 
-        // Remove the socket ID from the user document
+        // Find the user by socket ID and update the document by removing the socket ID
         try {
             await User.findOneAndUpdate(
                 { socketId: socket.id },
@@ -80,14 +80,14 @@ io.on('connection', (socket) => {
     });
 })
 
-    
-    // Middlewares for parsing JSON and handling CORS
+
     app.use(express.json());
     app.use(require('cors')());
 
-    // Set up routing for authentication and static files
-    app.use('/auth', authRoutes); // Authentication routes
-    app.use('/uploads', express.static('uploads')); // Serve static files from 'uploads' directory
+    app.use('/auth', authRoutes); // Mount the auth routes
+    app.use('/video', content);
+  
 
-    // Start the server on port 3001
+    app.use('/uploads', express.static('uploads'));
+
     app.listen(3001, () => console.log('Server started on http://localhost:3001'));
