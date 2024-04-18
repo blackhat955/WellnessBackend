@@ -4,6 +4,7 @@ const socketIo = require('socket.io');
 
 
 const authRoutes = require('./routes/authRoutes');
+const oauthRoutes = require('./routes/oauth');
 const content = require('./routes/videocontent');
 const Message = require('./models/messageSchema');
 const User = require('./models/User');
@@ -85,6 +86,7 @@ io.on('connection', (socket) => {
     app.use(require('cors')());
 
     app.use('/auth', authRoutes); // Mount the auth routes
+    app.use('/oauth', oauthRoutes); 
     app.use('/video', content);
   
 
