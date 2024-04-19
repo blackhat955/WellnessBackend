@@ -19,17 +19,20 @@ const router = express.Router();
 
 router.post('/register', async (req, res) => {
     const { email, password, firstname, lastname, userType } = req.body;
-    console.log(req.body)
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // console.log(req.body)
+    
+
     const userData =  await User.findOne({email});
     console.log(userData, 'userData')
     if(userData) {
       res.status(409).send({ message: 'User already Exists', userData });
-    } else {
+    } else{
+      const hashedPassword = await bcrypt.hash(password, 10);
       const user = new User({ email, password: hashedPassword, firstname, userType, lastname });
       const data = await user.save();
-      res.status(200).send({ message: 'Registered successfully', data  });
+      res.status(409).send({ message: 'Registered successfully', data  });
     }
+
 });
 
 router.post('/login', async (req, res) => {
@@ -149,13 +152,12 @@ router.post('/reset-password', async (req, res) => {
   const salt = bcrypt.genSaltSync(10);
   const hashedPassword = bcrypt.hashSync(password, salt);
   user.password = hashedPassword;
-  user.save()
 
   // Invalidate the reset token
   user.resetToken = null;
   user.tokenExpiry = null;
-
-  res.send({ message: 'Password reset successfully.' });
+  await user.save();
+  res.status(200).send({ message: 'Password reset successfully' });
 })
 
 // Additional test-case endpoint
