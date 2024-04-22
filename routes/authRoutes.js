@@ -124,7 +124,7 @@ router.post('/forget-password', async (req, res) => {
     to: email, 
     subject: 'Reset Password', 
     text: 'Reset Password', 
-    html: `<b>Click this link to reset your password: http://localhost:3000/reset-password/${token}</b>` 
+    html: `<b>Click this link to reset your password: https://wellnessfinal-96nurftbx-blackhat955s-projects.vercel.app/reset-password/${token}</b>` 
   };
 
   
