@@ -19,17 +19,20 @@ const router = express.Router();
 
 router.post('/register', async (req, res) => {
     const { email, password, firstname, lastname, userType } = req.body;
-    console.log(req.body)
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // console.log(req.body)
+    
+
     const userData =  await User.findOne({email});
     console.log(userData, 'userData')
     if(userData) {
       res.status(409).send({ message: 'User already Exists', userData });
-    } else {
+    } else{
+      const hashedPassword = await bcrypt.hash(password, 10);
       const user = new User({ email, password: hashedPassword, firstname, userType, lastname });
       const data = await user.save();
-      res.status(200).send({ message: 'Registered successfully', data  });
+      res.status(409).send({ message: 'Registered successfully', data  });
     }
+
 });
 
 router.post('/login', async (req, res) => {
@@ -124,7 +127,7 @@ router.post('/forget-password', async (req, res) => {
     to: email, 
     subject: 'Reset Password', 
     text: 'Reset Password', 
-    html: `<b>Click this link to reset your password: https://wellnessfinal-96nurftbx-blackhat955s-projects.vercel.app/reset-password/${token}</b>` 
+    html: `<b>Click this link to reset your password: http://localhost:3000/reset-password/${token}</b>` 
   };
 
   
@@ -149,14 +152,37 @@ router.post('/reset-password', async (req, res) => {
   const salt = bcrypt.genSaltSync(10);
   const hashedPassword = bcrypt.hashSync(password, salt);
   user.password = hashedPassword;
-  user.save()
 
   // Invalidate the reset token
   user.resetToken = null;
   user.tokenExpiry = null;
-
-  res.send({ message: 'Password reset successfully.' });
+  await user.save();
+  res.status(200).send({ message: 'Password reset successfully' });
 })
+
+// Additional test-case endpoint
+
+// Add this endpoint to authRoutes.js to handle test user deletions
+router.delete('/deleteUserForTest', async (req, res) => {
+  const { email } = req.body;
+  const result = await User.deleteOne({ email });
+  if (result.deletedCount === 0) {
+    return res.status(404).send({ message: 'User not found.' });
+  }
+  res.status(200).send({ message: 'Deleted Testing User successfully' });
+});
+
+
+router.post('/verify-code', async (req, res) => {
+  const { email, code } = req.body;
+  const user = await User.findOne({ email });
+  if (user && user.code === code) {
+      res.status(200).send({ message: 'Authenticated successfully', user: user });
+  } else {
+      res.status(401).send({ message: 'Invalid code' });
+  }
+});
+
 
 router.get('/search-fitness-professional', async (req, res) => {
   try {
@@ -283,56 +309,19 @@ router.get('/contents', async (req, res) => {
 });
 
 
-// router.get('/videos', (req, res) => {
-//   const videosDir = path.join(__dirname, '../uploads/Videos');
+router.get('/videos', (req, res) => {
+  const videosDir = path.join(__dirname, '../uploads/Videos');
 
-//   // Read the files in the 'upload/videos' directory
-//   fs.readdir(videosDir, (err, files) => {
-//       if (err) {
-//           console.error('Error reading videos directory:', err);
-//           return res.status(500).json({ error: 'Internal Server Error' });
-//       }
+  // Read the files in the 'upload/videos' directory
+  fs.readdir(videosDir, (err, files) => {
+      if (err) {
+          console.error('Error reading videos directory:', err);
+          return res.status(500).json({ error: 'Internal Server Error' });
+      }
 
-//       // Send the list of video file names as the response
-//       res.json({ videos: files });
-//   });
-// });
-
-
-
-router.post('/subscribe', async (req, res) => {
-const { email  } = req.body;
-
-
-const user = await User.findOne({ email });
-// Verify if email exists in your database (pseudo code)
-if (!user) {
-  return res.status(400).send({ message: 'Email not registered.' });
-}
-// Send email with the reset link
-let transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-      user: 'knowdurgesh98@gmail.com',
-      pass: 'eggr koox azdd bvtc'
-  },
-});
-let mailOptions = {
-  from: 'knowdurgesh98@gmail.com', 
-  to: email, 
-  subject: 'Subscribe to our service', 
-  text: 'We are very happy to have you!', 
-  html: `
-  <p>Thanks for subscribing to our service. We are very happy to have you!</p>
-  <p>This is a wellness tracking platform where you can find information about gym and outdoor workouts, hire tutors or mentors, and access video content to learn new things.</p>
-  <p>We will send you promotional emails from time to time.</p>
-  <p><a href="YOUR_UNSUBSCRIBE_LINK_HERE">Click here to unsubscribe</a></p>
-  <b>Thanks and regards</b>
-  <p>Wellness Tracking Team</p>
-`
-};
-await transporter.sendMail(mailOptions);
-res.send({ message: 'Email is got subscribed' });
+      // Send the list of video file names as the response
+      res.json({ videos: files });
+  });
 });
 
 
